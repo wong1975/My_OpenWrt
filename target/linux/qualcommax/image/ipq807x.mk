@@ -233,7 +233,7 @@ define Device/linksys_mx5300
 	$(call Device/linksys_mx)
 	DEVICE_MODEL := MX5300
 	DEVICE_PACKAGES += kmod-rtc-ds1307 ipq-wifi-linksys_mx5300 \
-		kmod-ath10k-ct ath10k-firmware-qca9984-ct
+		kmod-ath10k ath10k-firmware-qca9984
 endef
 TARGET_DEVICES += linksys_mx5300
 
@@ -374,11 +374,23 @@ TARGET_DEVICES += qnap_301w
 
 define Device/redmi_ax6
 	$(call Device/xiaomi_ax3600)
+	DEVICE_VARIANT := (OpenWrt expand layout)
 	DEVICE_VENDOR := Redmi
 	DEVICE_MODEL := AX6
-	DEVICE_PACKAGES := ipq-wifi-redmi_ax6
+	DEVICE_PACKAGES := ipq-wifi-redmi_ax6 -kmod-usb3 -kmod-usb-dwc3 -kmod-usb-dwc3-qcom
 endef
 TARGET_DEVICES += redmi_ax6
+
+define Device/redmi_ax6-stock
+	$(call Device/redmi_ax6)
+	DEVICE_VARIANT := (stock layout)
+	DEVICE_ALT0_VENDOR := Redmi
+	DEVICE_ALT0_MODEL := AX6
+	DEVICE_ALT0_VARIANT := (custom U-Boot layout)
+	KERNEL_SIZE :=
+	ARTIFACTS :=
+endef
+TARGET_DEVICES += redmi_ax6-stock
 
 define Device/spectrum_sax1v1k
 	$(call Device/FitImage)
@@ -444,12 +456,14 @@ define Device/xiaomi_ax3600
 	$(call Device/UbiFit)
 	DEVICE_VENDOR := Xiaomi
 	DEVICE_MODEL := AX3600
+	DEVICE_VARIANT := (OpenWrt expand layout)
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	DEVICE_DTS_CONFIG := config@ac04
 	SOC := ipq8071
 	KERNEL_SIZE := 36608k
-	DEVICE_PACKAGES := ipq-wifi-xiaomi_ax3600 kmod-ath10k-ct-smallbuffers ath10k-firmware-qca9887-ct
+	DEVICE_PACKAGES := ipq-wifi-xiaomi_ax3600 kmod-ath10k-smallbuffers ath10k-firmware-qca9887 \
+		-kmod-usb3 -kmod-usb-dwc3 -kmod-usb-dwc3-qcom
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
 	ARTIFACTS := initramfs-factory.ubi
 	ARTIFACT/initramfs-factory.ubi := append-image-stage initramfs-uImage.itb | ubinize-kernel
@@ -479,7 +493,7 @@ define Device/xiaomi_ax9000
 	SOC := ipq8072
 	KERNEL_SIZE := 57344k
 	DEVICE_PACKAGES := ipq-wifi-xiaomi_ax9000 kmod-ath11k-pci ath11k-firmware-qcn9074 \
-		kmod-ath10k-ct ath10k-firmware-qca9887-ct
+		kmod-ath10k ath10k-firmware-qca9887
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
 	ARTIFACTS := initramfs-factory.ubi
 	ARTIFACT/initramfs-factory.ubi := append-image-stage initramfs-uImage.itb | ubinize-kernel
