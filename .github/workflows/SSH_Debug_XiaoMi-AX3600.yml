@@ -7,10 +7,10 @@ on:
       repo_choice:
         description: "Select source repo: openwrt or lede"
         required: true
-        default: "openwrt"
+        default: "My_OpenWrt"
         type: choice
         options:
-          - openwrt
+          - My_OpenWrt
           - lede
       manual_config:
         description: "Manually generate XiaoMi-AX3600 config via SSH (y/n)"
