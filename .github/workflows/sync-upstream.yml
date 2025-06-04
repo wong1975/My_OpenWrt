@@ -12,6 +12,7 @@ jobs:
       - name: Checkout your repository
         uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: false
 
       - name: Set Git identity
@@ -24,13 +25,15 @@ jobs:
           git remote add upstream https://github.com/openwrt/openwrt.git
           git fetch upstream
 
-      - name: Merge upstream/master into local master
+      - name: Merge upstream/main into local main
         run: |
-          git checkout master
-          git merge upstream/master --no-edit || true
+          git checkout main
+          git merge upstream/main --no-edit || true
 
-      - name: Push updates to origin master
+      - name: Set origin url with token
         run: |
-          git push origin master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/wong1975/OpenWrt.git
+
+      - name: Push updates to origin main
+        run: |
+          git push origin main
