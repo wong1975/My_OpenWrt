@@ -1,0 +1,51 @@
+name: 自动同步并合并到My-OpenWrt
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 每天UTC时间2点自动执行
+  workflow_dispatch:      # 支持手动触发
+
+jobs:
+  sync_and_merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Set Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream and fetch
+        run: |
+          git remote add upstream https://github.com/openwrt/openwrt.git
+          git fetch upstream
+
+      - name: Merge upstream/main into local main
+        run: |
+          git checkout main
+          git merge upstream/main --no-edit || true
+
+      - name: Push updates to origin main
+        run: |
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout My-OpenWrt branch
+        run: |
+          git checkout My-OpenWrt
+
+      - name: Merge main into My-OpenWrt
+        run: |
+          git merge main --no-edit || true
+
+      - name: Push updates to My-OpenWrt branch
+        run: |
+          git push origin My-OpenWrt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
