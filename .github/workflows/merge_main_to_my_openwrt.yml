@@ -36,8 +36,8 @@ jobs:
 
       - name: Pull and rebase before push
         run: |
-          git pull --rebase origin My_OpenWrt
+          git pull --rebase origin mywork
 
       - name: Push updates to mywork branch
         run: |
-          git push origin My_OpenWrt
+          git push origin mywork
