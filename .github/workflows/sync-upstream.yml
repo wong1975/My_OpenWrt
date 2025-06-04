@@ -1,4 +1,4 @@
-name: Sync OpenWrt Upstream
+name: 自动更新OpenWrt官方 Sync OpenWrt Upstream
 
 on:
   schedule:
