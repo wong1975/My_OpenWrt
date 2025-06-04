@@ -1,9 +1,9 @@
-src-git packages https://git.openwrt.org/feed/packages.git
-src-git luci https://git.openwrt.org/project/luci.git
+src-git packages https://git.openwrt.org/feed/packages.git   #官方主包源，包含绝大多数 OpenWrt 软件包（如网络工具、协议、应用等常用软件）。
+src-git luci https://git.openwrt.org/project/luci.git        #LuCI Web 界面相关包（即管理后台界面和相关插件）
 src-git routing https://git.openwrt.org/feed/routing.git
-src-git telephony https://git.openwrt.org/feed/telephony.git
-src-git video https://github.com/openwrt/video.git
+#src-git telephony https://git.openwrt.org/feed/telephony.git #语音通信（VoIP）相关的软件包，比如 Asterisk、SIP、IP 电话等
+#src-git video https://github.com/openwrt/video.git           #视频相关的软件包，比如流媒体推送、摄像头、视频处理等包
 #src-git targets https://github.com/openwrt/targets.git
 #src-git oldpackages http://git.openwrt.org/packages.git
-#src-link custom /usr/src/openwrt/custom-feed
+#src-link custom /usr/src/openwrt/custom-feed  本地自定义 feed，可以将本地目录作为包源，方便开发和本地测试自定义包
 src-git mos https://github.com/QiuSimons/openwrt-mos.git
