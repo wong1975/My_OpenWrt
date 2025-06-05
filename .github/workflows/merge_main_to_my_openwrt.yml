@@ -1,8 +1,8 @@
 name: Merge upstream main to mywork
 
 on:
-  schedule:
-    - cron: '30 2 * * *'  # 每天UTC时间2:30自动合并
+  #schedule:
+  #  - cron: '30 2 * * *'  # 每天UTC时间2:30自动合并
   workflow_dispatch:
 
 jobs:
