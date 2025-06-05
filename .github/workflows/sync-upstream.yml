@@ -1,8 +1,8 @@
 name: 自动更新OpenWrt官方 Sync OpenWrt Upstream
 
 on:
-  schedule:
-    - cron: '0 2 * * *'   # 每天UTC时间2点自动同步，可根据需要调整
+  #schedule:
+  #  - cron: '0 2 * * *'   # 每天UTC时间2点自动同步，可根据需要调整
   workflow_dispatch:      # 允许手动触发
 
 jobs:
