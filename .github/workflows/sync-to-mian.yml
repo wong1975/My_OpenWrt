@@ -29,11 +29,13 @@ jobs:
         run: |
           git clone --depth 1 --branch ${LATEST_TAG} https://github.com/openwrt/openwrt.git
           cd openwrt
+          git fetch --tags
+          git checkout ${LATEST_TAG}
 
-      - name: Set origin URL with MY_GITHUB_TOKEN
+      - name: Create local stable branch
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/wong1975/OpenWrt.git
+          git checkout -b stable-${LATEST_TAG}
 
       - name: Push latest stable version to origin main
         run: |
-          git push origin ${LATEST_TAG}:main --force
+          git push origin stable-${LATEST_TAG}:main --force
