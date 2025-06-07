@@ -81,8 +81,7 @@ jobs:
 
     - name: 将.config 复制到 openwrt 目录
       run: |
-          cd $GITHUB_WORKSPACE/openwrt
-          cp found.config openwrt/.config
+          cp found.config $GITHUB_WORKSPACE/openwrt/.config
 
   
     #- name: "修改 Rust Makefile 配置"
