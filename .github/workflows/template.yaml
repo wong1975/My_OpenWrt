@@ -101,6 +101,8 @@ jobs:
   build:
     name: 构建固件
     runs-on: ubuntu-latest
+    container:
+      image: debian:11
     needs: check
     permissions:
       contents: write
@@ -108,7 +110,7 @@ jobs:
 
     steps:
       - name: 检出仓库代码
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: 释放磁盘空间
         uses: jlumbroso/free-disk-space@main
@@ -125,11 +127,12 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo rm -rf /etc/apt/sources.list.d/*
-          sudo -E apt-get -qq update
-          sudo -E apt-get -qq install $BUILD_DEPENDS
-          sudo -E apt-get -qq autoremove --purge
-          sudo -E apt-get -qq clean
+          apt-get update
+          apt-get install -y sudo tzdata gnupg # 容器内常用基础包
+          sudo apt-get update
+          sudo apt-get install -y $BUILD_DEPENDS
+          sudo apt-get autoremove --purge -y
+          sudo apt-get clean
           sudo timedatectl set-timezone $TIME_ZONE
           sudo mkdir -p /workdir/
           sudo chown $USER:$GROUPS /workdir/
