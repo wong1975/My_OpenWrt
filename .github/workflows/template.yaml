@@ -71,10 +71,14 @@ jobs:
   build:
     name: 构建固件
     runs-on: ubuntu-latest
+    container:
+      image: debian:11
     permissions:
       contents: write
     if: needs.check.outputs.cache-hit != 'true' || github.event.inputs.force-build == 'true'
     steps:
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
       - name: 检出仓库代码
         uses: actions/checkout@v4
 
