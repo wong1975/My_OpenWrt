@@ -10,7 +10,6 @@
 # 部分功能源自 https://github.com/P3TERX/Actions-OpenWrt，访问该仓库以获取相关版权信息。
 #-------------------------------------------------------------------------------------------------------
 
-# 工作流名称，在 GitHub Actions 主页显示。
 name: 为 Example-Device 构建 Example-Firmware
 
 on:
@@ -20,19 +19,11 @@ on:
         description: "Manually generate XiaoMi-AX3600 config via SSH (y/n)"
         default: "y"
         required: true
-        
-# 取消注释以下内容以定期运行。这里的 cron 表达式不包含秒。
-#  schedule:
-#    - cron: 0 */18 * * *
 
 env:
-  # REPO 代表此工作流中用于编译的 OpenWrt 源仓库。
-  # 你可以修改 REPO_NAME，但请确保不同工作流的名称不要重复。
   REPO_NAME: immortalwrt
   REPO_URL: https://github.com/immortalwrt/immortalwrt.git
   REPO_BRANCH: master
-
-  # 需要安装的构建依赖项。
   BUILD_DEPENDS: |
     ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential
     bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib
@@ -41,30 +32,14 @@ env:
     libssl-dev libtool lrzsz mkisofs msmtp ninja-build p7zip p7zip-full patch pkgconf python2.7 python3
     python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion swig texinfo
     uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev clang file nano aria2
-
-  # CONFIG_FILE 代表用于编译的配置文件。
-  # 你需要将这些文件上传到工作流仓库的根目录。
   CONFIG_FILE: .config
-
-  # CUSTOM_SCRIPT_1 在更新 feeds 之前执行的自定义脚本。
-  # CUSTOM_SCRIPT_2 在更新 feeds 之后执行的自定义脚本。
-  # 你可以通过这些脚本修改固件的初始设置。
-  # 请将这些脚本上传到工作流仓库的根目录。
-  #CUSTOM_SCRIPT_1: example-custom-script-1.sh
-  #CUSTOM_SCRIPT_2: example-custom-script-2.sh
-
-  # STORE_PRODUCTS 是否上传所有编译结果（包括未集成到固件中的软件包）。
+  # CUSTOM_SCRIPT_1: example-custom-script-1.sh
+  # CUSTOM_SCRIPT_2: example-custom-script-2.sh
   STORE_PRODUCTS: false
-
-  # STORE_FIRMWARE 是否上传固件到工作流的构建产物中。
   STORE_FIRMWARE: true
-
-  # 以下选项决定是否将固件传输到外部服务。
   COWTRANSFER_FIRMWARE: false
   WETRANSFER_FIRMWARE: false
   RELEASE_FIRMWARE: false
-
-  # 设置正确的时区。
   TIME_ZONE: Asia/Shanghai
 
 jobs:
@@ -77,8 +52,6 @@ jobs:
       contents: write
     if: needs.check.outputs.cache-hit != 'true' || github.event.inputs.force-build == 'true'
     steps:
-      - name: 检出仓库代码
-        uses: actions/checkout@v4
       - name: 检出仓库代码
         uses: actions/checkout@v4
 
@@ -98,14 +71,13 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
-          apt-get install -y sudo tzdata gnupg
-          sudo apt-get update
-          sudo apt-get install -y $BUILD_DEPENDS
-          sudo apt-get autoremove --purge -y
-          sudo apt-get clean
-          sudo timedatectl set-timezone $TIME_ZONE
-          sudo mkdir -p /workdir/
-          sudo chown $USER:$GROUPS /workdir/
+          apt-get install -y tzdata gnupg
+          apt-get install -y $BUILD_DEPENDS
+          apt-get autoremove --purge -y
+          apt-get clean
+          echo "$TIME_ZONE" > /etc/timezone
+          mkdir -p /workdir/
+          chown $(id -u):$(id -g) /workdir/
 
       - name: 克隆源代码
         working-directory: /workdir
@@ -115,10 +87,11 @@ jobs:
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
       - name: 运行自定义脚本 1
+        if: env.CUSTOM_SCRIPT_1
         run: |
-          chmod +x $CUSTOM_SCRIPT_1
+          chmod +x $CUSTOM_SCRIPT_1 || true
           cd openwrt/
-          $GITHUB_WORKSPACE/$CUSTOM_SCRIPT_1
+          [ -f "$GITHUB_WORKSPACE/$CUSTOM_SCRIPT_1" ] && $GITHUB_WORKSPACE/$CUSTOM_SCRIPT_1 || echo "无自定义脚本1"
 
       - name: 更新 feeds
         run: cd openwrt/ && ./scripts/feeds update -a
@@ -132,12 +105,12 @@ jobs:
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
 
       - name: 运行自定义脚本 2
+        if: env.CUSTOM_SCRIPT_2
         run: |
-          chmod +x $CUSTOM_SCRIPT_2
+          chmod +x $CUSTOM_SCRIPT_2 || true
           cd openwrt/
-          $GITHUB_WORKSPACE/$CUSTOM_SCRIPT_2
+          [ -f "$GITHUB_WORKSPACE/$CUSTOM_SCRIPT_2" ] && $GITHUB_WORKSPACE/$CUSTOM_SCRIPT_2 || echo "无自定义脚本2"
 
-      # SSH 远程调试（tmate），自动进入 make menuconfig
       - name: SSH 远程调试（tmate）进入 menuconfig
         if: ${{ github.event.inputs.manual_config == 'y' }}
         uses: mxschmitt/action-tmate@v3
@@ -145,11 +118,11 @@ jobs:
       - name: Upload .config from all possible locations
         uses: actions/upload-artifact@v4
         with:
-            name: config
-            path: |
-              $GITHUB_WORKSPACE/openwrt/.config
-              found.config
-              .config
+          name: config
+          path: |
+            $GITHUB_WORKSPACE/openwrt/.config
+            found.config
+            .config
 
       - name: 下载编译所需的软件包
         id: download-packages
@@ -238,24 +211,24 @@ jobs:
           files: ${{ env.FIRMWARE }}/*
 
   clean:
-        name: 清理旧的构建产物
-        runs-on: ubuntu-latest
-        permissions:
-          actions: write
-          contents: write
+    name: 清理旧的构建产物
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: write
 
-        steps:
-          - name: 删除旧的工作流运行记录
-            uses: Mattraks/delete-workflow-runs@main
-            with:
-              retain_days: 1
-              keep_minimum_runs: 1
+    steps:
+      - name: 删除旧的工作流运行记录
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          retain_days: 1
+          keep_minimum_runs: 1
 
-          - name: 删除旧的 Releases
-            uses: dev-drprasad/delete-older-releases@master
-            if: env.RELEASE_FIRMWARE == 'true' && !cancelled()
-            with:
-              keep_latest: 3
-              delete_tags: true
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 删除旧的 Releases
+        uses: dev-drprasad/delete-older-releases@master
+        if: env.RELEASE_FIRMWARE == 'true' && !cancelled()
+        with:
+          keep_latest: 3
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
