@@ -16,10 +16,6 @@ name: 为 Example-Device 构建 Example-Firmware
 on:
   workflow_dispatch:
     inputs:
-      force-build:
-        description: "无论是否有更新，都强制编译固件"
-        required: false
-        default: "false"
       manual_config:
         description: "Manually generate XiaoMi-AX3600 config via SSH (y/n)"
         default: "y"
@@ -72,36 +68,9 @@ env:
   TIME_ZONE: Asia/Shanghai
 
 jobs:
-  check:
-    name: 检查源代码更新
-    runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.cache-hash.outputs.cache-hit }}
-
-    steps:
-      - name: 获取最新提交哈希值
-        id: get-hash
-        run: |
-          git clone --depth 1 --branch $REPO_BRANCH --single-branch $REPO_URL ./
-          echo "commit-hash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-
-      - name: 比较提交哈希值
-        id: cache-hash
-        uses: actions/cache@main
-        with:
-          path: .${{ env.REPO_NAME }}-${{ env.REPO_BRANCH }}-commit-hash
-          key: HEAD-${{ steps.get-hash.outputs.commit-hash }}
-
-      - name: 保存新的提交哈希值
-        if: steps.cache-hash.outputs.cache-hit != 'true'
-        run: |
-          echo ${{ steps.get-hash.outputs.commit-hash }} | 
-            tee .$REPO_NAME-$REPO_BRANCH-commit-hash
-
   build:
     name: 构建固件
     runs-on: ubuntu-latest
-    needs: check
     permissions:
       contents: write
     if: needs.check.outputs.cache-hit != 'true' || github.event.inputs.force-build == 'true'
