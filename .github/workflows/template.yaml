@@ -54,8 +54,8 @@ env:
   # CUSTOM_SCRIPT_2 在更新 feeds 之后执行的自定义脚本。
   # 你可以通过这些脚本修改固件的初始设置。
   # 请将这些脚本上传到工作流仓库的根目录。
-  CUSTOM_SCRIPT_1: example-custom-script-1.sh
-  CUSTOM_SCRIPT_2: example-custom-script-2.sh
+  #CUSTOM_SCRIPT_1: example-custom-script-1.sh
+  #CUSTOM_SCRIPT_2: example-custom-script-2.sh
 
   # STORE_PRODUCTS 是否上传所有编译结果（包括未集成到固件中的软件包）。
   STORE_PRODUCTS: false
