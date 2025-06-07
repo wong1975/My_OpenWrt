@@ -19,6 +19,11 @@ on:
       - '.config'
   workflow_dispatch:
 
+  manual_config:
+    description: "Manually generate XiaoMi-AX3600 config via SSH (y/n)"
+    default: "y"
+    required: true
+
 jobs:
   build:
     runs-on: ubuntu-22.04
