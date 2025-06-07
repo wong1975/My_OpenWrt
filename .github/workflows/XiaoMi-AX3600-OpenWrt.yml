@@ -107,18 +107,19 @@ jobs:
             source/.config
             .config
             
-    - name: "加载自定义配置"
-      env:
-        CONFIG_FILE: '.config'
-      run: |
-        [ -e files ] && mv files openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        #chmod +x $DIY_SH
-        cd $GITHUB_WORKSPACE/openwrt
+    #- name: "加载自定义配置"
+    # env:
+    #   CONFIG_FILE: '.config'
+    # run: |
+    #   [ -e files ] && mv files openwrt/files
+    #   [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+    #   #chmod +x $DIY_SH
+    #   cd $GITHUB_WORKSPACE/openwrt
         #../$DIY_SH
-        sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
-        make defconfig || { echo "make defconfig 失败"; exit 1; }
-        cat .config | grep CONFIG_TARGET
+    #   sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
+    #   make defconfig || { echo "make defconfig 失败"; exit 1; }
+    #   cat .config | grep CONFIG_TARGET
+        
     - name: "下载包"
       run: |
         cd $GITHUB_WORKSPACE/openwrt
