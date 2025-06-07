@@ -107,7 +107,6 @@ jobs:
     permissions:
       contents: write
     if: needs.check.outputs.cache-hit != 'true' || github.event.inputs.force-build == 'true'
-
     steps:
       - name: 检出仓库代码
         uses: actions/checkout@v4
@@ -128,7 +127,7 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get update
-          apt-get install -y sudo tzdata gnupg # 容器内常用基础包
+          apt-get install -y sudo tzdata gnupg
           sudo apt-get update
           sudo apt-get install -y $BUILD_DEPENDS
           sudo apt-get autoremove --purge -y
