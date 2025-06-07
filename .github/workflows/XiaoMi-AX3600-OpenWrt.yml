@@ -74,8 +74,10 @@ jobs:
       run: cd $GITHUB_WORKSPACE/openwrt && ./scripts/feeds install -a
 
     - name: Install python3-netifaces
-      run: pip install netifaces
-
+      run: |
+          cd $GITHUB_WORKSPACE/openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install python3-netifaces || echo "Package not found"
   
     #- name: "修改 Rust Makefile 配置"
     #  run: |
@@ -86,13 +88,6 @@ jobs:
     #    cd $GITHUB_WORKSPACE/openwrt
     #    ./scripts/feeds update -a
     #    ./scripts/feeds install python3-netifaces
-
-    - name: "下载包"
-      run: |
-        cd $GITHUB_WORKSPACE/openwrt
-        make download -j$(nproc)
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
 
     # SSH 远程调试（tmate），自动进入 make menuconfig
     - name: SSH 远程调试（tmate）进入 menuconfig
@@ -131,7 +126,14 @@ jobs:
         #make defconfig || { echo "make defconfig 失败"; exit 1; }
         make olddefconfig V=s || { echo "make defconfig 保留用户的配置失败"; exit 1; }
         cat .config | grep CONFIG_TARGET
-        
+
+    - name: "下载包"
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt
+        make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+  
     - name: "多线程编译"
       run: |
         cd $GITHUB_WORKSPACE/openwrt
