@@ -1,6 +1,6 @@
 src-git packages https://git.openwrt.org/feed/packages.git   #官方主包源，包含绝大多数 OpenWrt 软件包（如网络工具、协议、应用等常用软件）。
-src-git luci https://github.com/openwrt/luci.git
-#src-git luci https://git.openwrt.org/project/luci.git        #LuCI Web 界面相关包（即管理后台界面和相关插件）
+#src-git luci https://github.com/openwrt/luci.git
+src-git luci https://git.openwrt.org/project/luci.git        #LuCI Web 界面相关包（即管理后台界面和相关插件）
 src-git routing https://git.openwrt.org/feed/routing.git
 #src-git telephony https://git.openwrt.org/feed/telephony.git #语音通信（VoIP）相关的软件包，比如 Asterisk、SIP、IP 电话等
 #src-git video https://github.com/openwrt/video.git           #视频相关的软件包，比如流媒体推送、摄像头、视频处理等包
