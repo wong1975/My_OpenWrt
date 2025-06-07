@@ -72,6 +72,10 @@ jobs:
 
     - name: "安装软件更新"
       run: cd $GITHUB_WORKSPACE/openwrt && ./scripts/feeds install -a
+
+    - name: Install python3-netifaces
+      run: pip install netifaces
+
   
     #- name: "修改 Rust Makefile 配置"
     #  run: |
