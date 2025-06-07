@@ -18,11 +18,12 @@ on:
     paths:
       - '.config'
   workflow_dispatch:
+    inputs:
+      manual_config:
+        description: "Manually generate XiaoMi-AX3600 config via SSH (y/n)"
+        default: "y"
+        required: true
 
-  manual_config:
-    description: "Manually generate XiaoMi-AX3600 config via SSH (y/n)"
-    default: "y"
-    required: true
 
 jobs:
   build:
