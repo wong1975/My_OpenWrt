@@ -78,6 +78,12 @@ jobs:
           cd $GITHUB_WORKSPACE/openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install python3-netifaces || echo "Package not found"
+
+    - name: 将.config 复制到 openwrt 目录
+      run: |
+          cd $GITHUB_WORKSPACE/openwrt
+          cp found.config openwrt/.config
+
   
     #- name: "修改 Rust Makefile 配置"
     #  run: |
@@ -109,8 +115,8 @@ jobs:
       with:
           name: config
           path: |
+            $GITHUB_WORKSPACE/openwrt/.config
             found.config
-            source/.config
             .config
             
     - name: "加载自定义配置"
