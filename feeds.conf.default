@@ -7,4 +7,6 @@ src-git routing https://git.openwrt.org/feed/routing.git
 #src-git targets https://github.com/openwrt/targets.git
 #src-git oldpackages http://git.openwrt.org/packages.git
 #src-link custom /usr/src/openwrt/custom-feed  本地自定义 feed，可以将本地目录作为包源，方便开发和本地测试自定义包
+src-git packages https://git.openwrt.org/feed/packages.git #python3-netifaces
+
 src-git mos https://github.com/QiuSimons/openwrt-mos.git
