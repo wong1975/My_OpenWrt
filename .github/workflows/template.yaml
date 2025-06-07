@@ -101,8 +101,6 @@ jobs:
   build:
     name: 构建固件
     runs-on: ubuntu-latest
-    container:
-      image: debian:11
     needs: check
     permissions:
       contents: write
