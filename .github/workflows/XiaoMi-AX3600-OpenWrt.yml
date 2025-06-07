@@ -1,0 +1,132 @@
+#
+# This is free software, lisence use MIT.
+# 
+# Copyright (C) 2019 P3TERX <https://p3terx.com>
+# Copyright (C) 2019 KFERMercer <KFER.Mercer@gmail.com>
+# 
+# <https://github.com/KFERMercer/OpenWrt-CI>
+#
+
+name: OpenWrt官方源编译XiaoMi-AX3600
+
+on: 
+  release:
+    types: [published]
+  push:
+    branches: 
+      - master
+    paths:
+      - '.config'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    #runs-on: ubuntu-22.04-lts
+    #runs-on: ubuntu-latest
+
+    steps:
+    - name: "获取源码"
+      uses: actions/checkout@v3
+      
+    - name: "初始化环境"
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        LANG: en_US.UTF-8
+      run: |
+        echo "Cleaning up..."
+        docker rmi $(docker images -q) || true
+        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d/*
+        sudo swapoff /swapfile && sudo rm -f /swapfile
+        sudo -E apt-get -qq update
+        sudo -E apt-get install -y \
+            ack antlr3 aria2 asciidoc autoconf automake autopoint binutils bison \
+            build-essential bzip2 ccache cmake cpio curl device-tree-compiler \
+            fastjar flex gawk gettext gcc-multilib g++-multilib git gperf haveged \
+            help2man intltool libc6-dev-i386 libelf-dev libglib2.0-dev libgmp3-dev \
+            libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev \
+            libreadline-dev libssl-dev libtool lrzsz mkisofs msmtp nano ninja-build \
+            p7zip p7zip-full patch pkgconf python2.7 python3 python3-pip libpython3-dev \
+            qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs \
+            upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+    - name: "克隆 OpenWrt 官方源代码"
+      env: 
+        REPO_URL: https://git.openwrt.org/openwrt/openwrt.git
+        REPO_BRANCH: main
+      run: git clone --depth=1 $REPO_URL -b $REPO_BRANCH openwrt
+
+    - name: "检查 OpenWrt 目录是否存在"
+      run: |
+        ls -l
+        cd $GITHUB_WORKSPACE/openwrt || exit 1
+    - name: "下载软件更新"
+      run: cd $GITHUB_WORKSPACE/openwrt && ./scripts/feeds update -a
+
+    - name: "安装软件更新"
+      run: cd $GITHUB_WORKSPACE/openwrt && ./scripts/feeds install -a
+  
+    #- name: "修改 Rust Makefile 配置"
+    #  run: |
+    #    sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
+
+    #- name: "安装 Python 依赖"
+    #  run: |
+    #    cd $GITHUB_WORKSPACE/openwrt
+    #    ./scripts/feeds update -a
+    #    ./scripts/feeds install python3-netifaces
+
+    - name: "加载自定义配置"
+      env:
+        CONFIG_FILE: '.config'
+      run: |
+        [ -e files ] && mv files openwrt/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
+        #chmod +x $DIY_SH
+        cd $GITHUB_WORKSPACE/openwrt
+        #../$DIY_SH
+        sed -i 's/--set=llvm\.download-ci-llvm=true/--set=llvm.download-ci-llvm=false/' feeds/packages/lang/rust/Makefile
+        make defconfig || { echo "make defconfig 失败"; exit 1; }
+        cat .config | grep CONFIG_TARGET
+    - name: "下载包"
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt
+        make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+    - name: "多线程编译"
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt
+        echo -e "$(nproc) threads for compilation..."
+        make -j$(nproc)
+    - name: "失败时使用单线程编译"
+      if: failure()
+      run: |
+        cd $GITHUB_WORKSPACE/openwrt
+        make -j1 V=s
+    - name: "整理固件文件"
+      if: always()
+      run: |
+        TARGET_DIR=$(find openwrt/bin/targets -mindepth 2 -maxdepth 2 -type d | head -n 1)
+        if [ -d "$TARGET_DIR" ]; then
+          cd "$TARGET_DIR"
+          rm -rf packages
+          echo "FIRMWARE=$TARGET_DIR" >> $GITHUB_ENV
+        else
+          echo "Error: No target directory found!" >&2
+          exit 1
+        fi
+    - name: "上传编译结果"
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: OpenWrt_bin
+        path: openwrt/bin
+
+    - name: "上传固件"
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: OpenWrt_firmware
+        path: ${{ env.FIRMWARE }}
