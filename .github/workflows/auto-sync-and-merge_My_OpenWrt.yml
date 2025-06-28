@@ -1,8 +1,8 @@
 name: 自动同步并合并到My-OpenWrt
 
 on:
-  schedule:
-    - cron: '0 2 * * *'   # 每天UTC时间2点自动执行
+  #schedule:
+  #  - cron: '0 2 * * *'   # 每天UTC时间2点自动执行
   workflow_dispatch:      # 支持手动触发
 
 jobs:
