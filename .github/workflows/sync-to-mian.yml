@@ -1,8 +1,9 @@
+
 name: 自动更新 OpenWrt 官方稳定版
 
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天 UTC 时间 2 点自动同步，可根据需要调整
+    - cron: '0 2 * * *'  # 每天 UTC 时间 2 点自动同步
   workflow_dispatch:      # 允许手动触发
 
 jobs:
@@ -14,10 +15,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set Git identity
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "GitHub Actions"
+
       - name: Set origin URL with MY_GITHUB_TOKEN
         run: |
           git remote set-url origin https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/wong1975/OpenWrt.git
-
 
       - name: Fetch latest stable version from OpenWrt GitHub Releases
         id: get_latest_version
@@ -27,15 +32,14 @@ jobs:
 
       - name: Clone OpenWrt repository with latest stable version
         run: |
-          git clone --depth 1 --branch ${LATEST_TAG} https://github.com/openwrt/openwrt.git
+          git clone --depth 1 --branch ${LATEST_TAG} https://github.com/openwrt/openwrt.git openwrt
           cd openwrt
           git fetch --tags
           git checkout ${LATEST_TAG}
 
-      - name: Create local stable branch
+      - name: Create and push stable branch to your repository
         run: |
+          cd openwrt
           git checkout -b stable-${LATEST_TAG}
-
-      - name: Push latest stable version to origin main
-        run: |
-          git push origin stable-${LATEST_TAG}:main --force
+          git remote add myrepo https://x-access-token:${{ secrets.MY_GITHUB_TOKEN }}@github.com/wong1975/OpenWrt.git
+          git push myrepo stable-${LATEST_TAG}:main --force-with-lease
